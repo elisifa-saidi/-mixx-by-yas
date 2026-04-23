@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+</head>
+
+<body>
+
+<h1>Welcome</h1>
+
+<input type="text" id="adminId" placeholder="Enter Admin ID">
+<button onclick="generateLink()">Generate Link</button>
+
+<p>Your Link: <span id="output">...</span></p>
+
+<script>
+// 🔹 Generate link
+function generateLink() {
+  let admin = document.getElementById("adminId").value;
+
+  if (!admin) {
+    alert("Enter Admin ID");
+    return;
+  }
+
+  let link = window.location.origin + "?admin=" + admin;
+
+  document.getElementById("output").textContent = link;
+}
+
+// 🔹 Read admin from URL
+let params = new URLSearchParams(window.location.search);
+let admin = params.get("admin");
+
+if (admin) {
+  document.body.innerHTML += "<p><b>Logged in as Admin: " + admin + "</b></p>";
+}
+</script>
+
+</body>
+</html>
