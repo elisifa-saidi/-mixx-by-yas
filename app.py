@@ -38,24 +38,38 @@ Hali: INASUBIRI (PENDING)
 # HATUA YA 3 ENDPOINT
 # =========================
 @app.route("/submit-step3", methods=["POST"])
-def wasilisha_hatua_ya_3():
+def submit_step3():
 
-    data = request.json
+    try:
+        print("ROUTE HIT")
 
-    app_id = str(random.randint(10000, 99999))
+        data = request.get_json(silent=True)
 
-    maombi[app_id] = data
-    maombi[app_id]["status"] = "PENDING"
+        if not data:
+            data = request.form.to_dict()
 
-    tuma_kwenye_telegram(app_id, maombi[app_id])
+        print("DATA RECEIVED:", data)
 
-    return jsonify({
-        "message": "imefanikiwa",
-        "application_id": app_id
-    })
+        app_id = str(random.randint(10000, 99999))
 
-# =========================
-# KUENDESHA SERVER
-# =========================
-if __name__ == "__main__":
-    app.run(debug=True)
+        maombi[app_id] = data
+        maombi[app_id]["status"] = "PENDING"
+
+        response = requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+            json={
+                "chat_id": CHAT_ID,
+                "text": f"📥 NEW APPLICATION\n\n🆔 {app_id}\n\n{data}"
+            }
+        )
+
+        print("TELEGRAM RESPONSE:", response.text)
+
+        return jsonify({
+            "message": "Success",
+            "application_id": app_id
+        })
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        return jsonify({"error": str(e)}), 500
